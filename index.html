@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KasirPro V6 - Ultimate Profit & QRIS</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+</head>
+<body class="sidebar-open">
+
+<div id="loginPage" class="overlay">
+    <div class="auth-card">
+        <div class="icon-circle">💰</div>
+        <h2>Aktivasi KasirPro</h2>
+        <input type="text" id="setupNamaWarung" placeholder="Nama Toko Anda">
+        <input type="text" id="setupAlamatWarung" placeholder="Alamat Lengkap">
+        <button class="btn-main" onclick="handleLogin()">Buka Toko & Pantau Profit</button>
+    </div>
+</div>
+
+<div id="mainApp" class="container" style="display: none;">
+    <aside class="sidebar" id="sidebar">
+        <div class="brand-logo">KASIR<span>PRO</span></div>
+        <nav>
+            <button class="nav-link active" id="linkKasir" onclick="switchPage('kasir')">🛒 POS Kasir</button>
+            <button class="nav-link" id="linkProduk" onclick="switchPage('produk')">📦 Kelola Barang</button>
+            <button class="nav-link" id="linkLaporan" onclick="switchPage('laporan')">📈 Laporan Cuan</button>
+        </nav>
+        <button class="btn-logout" onclick="handleLogout()">Reset Aplikasi</button>
+    </aside>
+
+    <main class="main-content">
+        <header class="header">
+            <div class="header-left">
+                <button class="btn-toggle" onclick="toggleSidebar()">☰</button>
+                <div class="header-info">
+                    <h2 id="dispNama">Toko</h2>
+                    <p id="dispAlamat">Alamat</p>
+                </div>
+            </div>
+            <div class="clock-box"><span id="live-clock">00:00:00</span></div>
+        </header>
+
+        <div id="pageKasir" class="page active">
+            <div class="pos-layout">
+                <div class="item-grid-area">
+                    <div class="search-wrap">
+                        <input type="text" id="cariMenu" placeholder="Cari nama barang..." oninput="renderProduk()">
+                    </div>
+                    <div class="grid" id="productGrid"></div>
+                </div>
+
+                <div class="checkout-area">
+                    <div class="panel-card">
+                        <h3>Keranjang Belanja</h3>
+                        <input type="text" id="namaPembeli" placeholder="Nama Pelanggan">
+                        <div class="cart-list" id="cartList"></div>
+                        <div class="cart-summary">
+                            <div class="t-row"><span>Total</span><h2 id="totalHarga">Rp 0</h2></div>
+                            <div class="pay-tabs">
+                                <button class="t-btn active" id="tabTunai" onclick="setMetode('tunai')">Tunai</button>
+                                <button class="t-btn" id="tabQRIS" onclick="setMetode('qris')">QRIS</button>
+                            </div>
+                            <div id="inputTunai">
+                                <input type="number" id="uangBayar" placeholder="Uang diterima" oninput="hitungKembalian()">
+                                <p>Kembalian: <b id="kembalian">Rp 0</b></p>
+                            </div>
+                            <div id="inputQRIS" style="display:none; text-align:center;">
+                                <img src="" id="qrisDisplay" class="q-img" alt="QRIS Toko">
+                            </div>
+                            <button class="btn-pay" onclick="prosesTransaksi()">BAYAR & CETAK STRUK</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="pageProduk" class="page">
+            <div class="card">
+                <h3>+ Tambah Produk Baru</h3>
+                <div class="form-grid">
+                    <input type="text" id="pNama" placeholder="Nama Barang">
+                    <input type="number" id="pModal" placeholder="Harga Modal (Beli)">
+                    <input type="number" id="pHarga" placeholder="Harga Jual">
+                    <div class="upload-box">
+                        <label>Foto Barang:</label>
+                        <input type="file" id="pFoto" accept="image/*">
+                    </div>
+                    <button class="btn-main" onclick="simpanProduk()">Simpan ke Inventori</button>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top:20px; border-top: 5px solid var(--p);">
+                <h3>🖼️ Pengaturan QRIS Toko</h3>
+                <input type="file" accept="image/*" onchange="simpanQRIS(this)">
+                <p><small>*Pilih file gambar QRIS agar muncul saat pembayaran.</small></p>
+            </div>
+
+            <div class="card" style="margin-top:20px">
+                <h3>Daftar Barang Anda</h3>
+                <div class="table-wrap">
+                    <table class="table">
+                        <thead><tr><th>Barang</th><th>Modal</th><th>Jual</th><th>Profit</th><th>Aksi</th></tr></thead>
+                        <tbody id="listBarangInput"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="pageLaporan" class="page">
+            <div class="profit-grid">
+                <div class="p-card-stat">
+                    <small>Total Omzet</small>
+                    <h2 id="lapTotal">Rp 0</h2>
+                </div>
+                <div class="p-card-stat" style="border-left: 5px solid #ef4444;">
+                    <small>Total Modal</small>
+                    <h2 id="lapModal">Rp 0</h2>
+                </div>
+                <div class="p-card-stat" style="border-left: 5px solid #22c55e;">
+                    <small>Laba Bersih (Cuan)</small>
+                    <h2 id="lapProfit">Rp 0</h2>
+                </div>
+            </div>
+            <div class="card" style="margin-top:20px">
+                <h3>Riwayat Transaksi</h3>
+                <div class="table-wrap">
+                    <table class="table">
+                        <thead><tr><th>Waktu</th><th>Pelanggan</th><th>Metode</th><th>Total</th></tr></thead>
+                        <tbody id="lapBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<div id="modalStruk" class="overlay-struk" style="display:none;">
+    <div class="struk-paper" id="strukPrint">
+        <div class="s-head">
+            <h2 id="sToko"></h2>
+            <p id="sAlamat"></p>
+            <p id="sWaktu"></p>
+        </div>
+        <div class="s-border">--------------------------------</div>
+        <p>Cust: <span id="sNama"></span></p>
+        <div class="s-border">--------------------------------</div>
+        <div id="sItems"></div>
+        <div class="s-border">--------------------------------</div>
+        <div class="s-total">
+            <span>TOTAL</span><span id="sTotal"></span>
+        </div>
+        <div class="s-footer">Terima Kasih!</div>
+    </div>
+    <div class="struk-actions no-print">
+        <button class="btn-action print" onclick="window.print()">🖨️ Cetak</button>
+        <button class="btn-action wa" onclick="kirimWhatsApp()">📱 Kirim WA</button>
+        <button class="btn-action close" onclick="tutupStruk()">❌ Selesai</button>
+    </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+                          </html>
